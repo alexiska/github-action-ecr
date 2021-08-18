@@ -6,7 +6,7 @@ on: [push]
 name: Deploy
 jobs:
   deploy-infrastructure:
-     steps:
+      steps:
       - name: Retrieve default VPC ID and public subnets
         id: vpc
         run: |
