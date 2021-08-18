@@ -8,37 +8,37 @@ jobs:
   deploy-infrastructure:
      steps:
       - name: Retrieve default VPC ID and public subnets
-          id: vpc
-          run: |
-            VPC_ID=`aws ec2 describe-vpcs --filters "Name=isDefault, Values=true" --query 'Vpcs[].VpcId' --output text`
-            echo "::set-output name=vpc-id::$VPC_ID"
-            SUBNET_1=`aws ec2 describe-subnets --filters "Name=vpc-id,Values=$VPC_ID" "Name=default-for-az,Values=true" --query 'Subnets[0].SubnetId' --output text`
-            echo "::set-output name=subnet-one::$SUBNET_1"
-            SUBNET_2=`aws ec2 describe-subnets --filters "Name=vpc-id,Values=$VPC_ID" "Name=default-for-az,Values=true" --query 'Subnets[1].SubnetId' --output text`
-            echo "::set-output name=subnet-two::$SUBNET_2"
+        id: vpc
+        run: |
+          VPC_ID=`aws ec2 describe-vpcs --filters "Name=isDefault, Values=true" --query 'Vpcs[].VpcId' --output text`
+          echo "::set-output name=vpc-id::$VPC_ID"
+          SUBNET_1=`aws ec2 describe-subnets --filters "Name=vpc-id,Values=$VPC_ID" "Name=default-for-az,Values=true" --query 'Subnets[0].SubnetId' --output text`
+          echo "::set-output name=subnet-one::$SUBNET_1"
+          SUBNET_2=`aws ec2 describe-subnets --filters "Name=vpc-id,Values=$VPC_ID" "Name=default-for-az,Values=true" --query 'Subnets[1].SubnetId' --output text`
+          echo "::set-output name=subnet-two::$SUBNET_2"
 
       - name: Deploy infrastructure with CloudFormation
-          id: infrastructure-stack
-          uses: aws-actions/aws-cloudformation-github-deploy@v1
-          with:
-            name: ${{ steps.env-name.outputs.environment }}-infra
-            template: cloudformation-templates/infrastructure.yml
-            role-arn: arn:aws:iam::${{ steps.creds.outputs.aws-account-id }}:role/github-actions-cloudformation-stack-role
-            no-fail-on-empty-changeset: "1"
-            parameter-overrides: >-
-              EnvironmentName=${{ steps.env-name.outputs.environment }},
-              VPC=${{ steps.vpc.outputs.vpc-id }},
-              PublicSubnetOne=${{ steps.vpc.outputs.subnet-one }},
-              PublicSubnetTwo=${{ steps.vpc.outputs.subnet-two }}
+        id: infrastructure-stack
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: ${{ steps.env-name.outputs.environment }}-infra
+          template: cloudformation-templates/infrastructure.yml
+          role-arn: arn:aws:iam::${{ steps.creds.outputs.aws-account-id }}:role/github-actions-cloudformation-stack-role
+          no-fail-on-empty-changeset: "1"
+          parameter-overrides: >-
+            EnvironmentName=${{ steps.env-name.outputs.environment }},
+            VPC=${{ steps.vpc.outputs.vpc-id }},
+            PublicSubnetOne=${{ steps.vpc.outputs.subnet-one }},
+            PublicSubnetTwo=${{ steps.vpc.outputs.subnet-two }}
 
       - name: Deploy ECS service with CloudFormation
-            id: service-stack
-            uses: aws-actions/aws-cloudformation-github-deploy@v1
-            with:
-              name: ${{ needs.deploy-infrastructure.outputs.env-name }}-webapp
-              template: cloudformation-templates/service.yml
-              role-arn: arn:aws:iam::${{ steps.creds.outputs.aws-account-id }}:role/github-actions-cloudformation-stack-role
-              parameter-overrides: >-
-                EnvironmentName=${{ needs.deploy-infrastructure.outputs.env-name }},
-                ServiceName=webapp,
-                ImageUrl=${{ steps.build-image.outputs.image }}
+        id: service-stack
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: ${{ needs.deploy-infrastructure.outputs.env-name }}-webapp
+          template: cloudformation-templates/service.yml
+          role-arn: arn:aws:iam::${{ steps.creds.outputs.aws-account-id }}:role/github-actions-cloudformation-stack-role
+          parameter-overrides: >-
+            EnvironmentName=${{ needs.deploy-infrastructure.outputs.env-name }},
+            ServiceName=webapp,
+            ImageUrl=${{ steps.build-image.outputs.image }}
