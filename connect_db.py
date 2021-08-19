@@ -11,5 +11,5 @@ async def get_status_code():
 @app.get('/health')
 async def get_status_code():
    
-        return 200
+        return "200 OK"
 
