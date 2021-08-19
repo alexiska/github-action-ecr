@@ -9,4 +9,6 @@ RUN pip install uvicorn
 
 EXPOSE 8080
 
+HEALTHCHECK CMD curl --fail http://localhost:8080 || exit 1 
+
 CMD ["uvicorn", "connect_db:app", "--host", "0.0.0.0", "--port", "8080"]
