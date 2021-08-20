@@ -43,7 +43,6 @@ jobs:
         ECR_REPOSITORY: shiitake_repo
         IMAGE_TAG: latest
       run: |
-
         # Build a docker container and push it to ECR 
         # so that it can be deployed to ECS.
 
